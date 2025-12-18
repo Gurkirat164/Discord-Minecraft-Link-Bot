@@ -8,13 +8,16 @@ A feature-rich Discord bot for monitoring Minecraft server status with auto-upda
 - **Real-time Status Updates** - Auto-updates server status every 5 minutes
 - **Player Tracking** - Shows current online players and tracks peak player count
 - **Multi-Server Support** - Monitor multiple servers (Survival, Lifesteal, etc.)
+- **Multi-Channel Support** - Send status to multiple channels across different servers
 - **Beautiful Embeds** - Custom embeds with logo and banner images
-- **Persistent Data** - Saves peak players and message references across restarts
+- **Persistent Data** - Saves peak players and channel configurations across restarts
+- **Auto-Recovery** - Automatically sends new message if status message is deleted
 
 ### 💬 Slash Commands
 - `/ping` - Check the bot's latency (Everyone)
 - `/mcstatus` - Get current Minecraft server status (Admin only)
-- `/update` - Force immediate status update, bypassing cooldown (Admin only)
+- `/update` - Force immediate status update in all channels (Admin only)
+- `/setchannel` - Set current channel for server status updates (Admin only)
 
 ### 📊 Status Display
 - Server address
@@ -66,12 +69,9 @@ DISCORD_TOKEN=your_actual_bot_token
 MC_SERVERS=play.horizion.in
 SURVIVAL_IP=survival.horizion.in
 LIFESTEAL_IP=lifesteal.horizion.in
-STATUS_CHANNEL_ID=your_channel_id_here
 ```
 
-**To get Channel ID:**
-- Enable Developer Mode in Discord (User Settings > Advanced > Developer Mode)
-- Right-click on a channel → Copy Channel ID
+**Note:** Status channels are now configured using the `/setchannel` command instead of environment variables.
 
 ### 4. Add Images (Optional)
 
@@ -93,17 +93,28 @@ npm start
 
 ## Usage
 
+### Initial Setup
+
+1. **Set Status Channel**: Run `/setchannel` in any channel where you want status updates
+   - The bot will send an initial status embed
+   - This channel will be saved and auto-updated every 5 minutes
+
 ### Commands
 
 Once the bot is online in your server:
 
 - **`/ping`** - Test bot responsiveness and check API latency
 - **`/mcstatus`** - Manually check server status (Admin only)
-- **`/update`** - Force immediate status update (Admin only)
+- **`/setchannel`** - Configure current channel for status updates (Admin only)
+  - Can be used in multiple channels across different servers
+  - Each channel maintains its own status message
+- **`/update`** - Force immediate status update in all configured channels (Admin only)
+  - Bypasses the 5-minute cooldown
+  - Updates all channels at once
 
 ### Auto-Updates
 
-The bot automatically updates the server status embed every 5 minutes in the configured status channel. The same message is edited to avoid spam.
+The bot automatically updates the server status embed every 5 minutes in all configured channels. The same message is edited to avoid spam. If a status message is deleted, the bot will automatically send a new one.
 
 ### Peak Players
 
@@ -118,7 +129,7 @@ Dc Bot/
 ├── package.json       # Dependencies and scripts
 ├── .env              # Environment variables (not tracked in git)
 ├── .env.example      # Example environment file
-├── data.json         # Persistent data (peak players, message IDs)
+├── data.json         # Persistent data (peak players, channel configs)
 ├── images/           # Embed images
 │   ├── logo.png
 │   └── banner.png
@@ -155,8 +166,8 @@ Edit `mcStatus.js` to customize:
 - Refresh Discord with `Ctrl + R`
 
 ### Bot can't send messages
-- Check bot has permissions in the status channel
-- Verify `STATUS_CHANNEL_ID` is correct
+- Check bot has permissions in the channel (Send Messages, Embed Links, Attach Files)
+- Run `/setchannel` in a channel where the bot has permissions
 - Check bot role is high enough in server hierarchy
 
 ### Images not displaying
@@ -164,10 +175,15 @@ Edit `mcStatus.js` to customize:
 - Check file names match exactly (case-sensitive)
 - Verify images are valid PNG files
 
-### Peak players not saving
+### Peak players or channels not saving
 - Check `data.json` file exists and is writable
 - Verify bot has file system permissions
 - Check console for error messages
+
+### Status not updating automatically
+- Make sure at least one channel is configured with `/setchannel`
+- Check console logs for errors
+- Verify bot is online and connected
 
 ## Development
 

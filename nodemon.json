@@ -1,0 +1,6 @@
+{
+  "ignore": ["data.json", "*.log"],
+  "watch": ["*.js", "*.json"],
+  "ext": "js,json",
+  "verbose": false
+}
