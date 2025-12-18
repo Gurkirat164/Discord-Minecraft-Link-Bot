@@ -1,4 +1,4 @@
-# Horizion Discord Bot
+# Mc Status Discord Bot
 
 A feature-rich Discord bot for monitoring Minecraft server status with auto-updating embeds, player tracking, and more.
 
