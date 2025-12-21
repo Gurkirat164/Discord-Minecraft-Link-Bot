@@ -3,13 +3,20 @@ const fs = require('fs');
 const path = require('path');
 const { Client, GatewayIntentBits, REST, Routes, Collection } = require('discord.js');
 const { loadData } = require('./utils/dataManager');
+const { createDetailsEmbed } = require('./commands/general/details');
+const { createMediaRankEmbeds } = require('./commands/general/mediaranks');
+const { getProfile } = require('./profiles');
 const { startAutoUpdate } = require('./utils/serverUpdater');
 const { startAdminLogUpdater } = require('./utils/logUpdater');
 const { startRankExpirationChecker } = require('./utils/expirationChecker');
 
 // Create a new client instance
 const client = new Client({ 
-    intents: [GatewayIntentBits.Guilds] 
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ] 
 });
 
 // Collection to store commands
@@ -97,6 +104,36 @@ client.on('interactionCreate', async interaction => {
         } else {
             await interaction.reply({ content: errorMessage, ephemeral: true }).catch(console.error);
         }
+    }
+});
+
+// Handle messages for admin commands
+client.on('messageCreate', async message => {
+    // Ignore bot messages
+    if (message.author.bot) return;
+    
+    // Get user profile for admin commands
+    const userProfile = getProfile(message.author.id);
+    
+    // Check if message is "askdetails" and user has admin profile
+    if (message.content.toLowerCase() === 'askdetails') {
+        if (!userProfile || userProfile.rank !== 'admin') {
+            return;
+        }
+        
+        // Send the details embed from details.js
+        await message.channel.send({ embeds: [createDetailsEmbed()] });
+    }
+    
+    // Check if message is "mediaranks" and user has admin profile
+    if (message.content.toLowerCase() === 'mediaranks') {
+        if (!userProfile || userProfile.rank !== 'admin') {
+            return;
+        }
+        
+        // Send the mediaranks embeds from mediaranks.js
+        const embeds = createMediaRankEmbeds();
+        await message.channel.send({ embeds });
     }
 });
 
