@@ -14,10 +14,25 @@ A feature-rich Discord bot for monitoring Minecraft server status with auto-upda
 - **Auto-Recovery** - Automatically sends new message if status message is deleted
 
 ### 💬 Slash Commands
+
+**General Commands:**
 - `/ping` - Check the bot's latency (Everyone)
+- `/help` - Display all available commands (Everyone)
+
+**Minecraft Server Commands:**
 - `/mcstatus` - Get current Minecraft server status (Admin only)
 - `/update` - Force immediate status update in all channels (Admin only)
-- `/setchannel` - Set current channel for server status updates (Admin only)
+
+**Profile Management Commands:**
+- `/viewprofile [user]` - View a user's profile (Everyone)
+- `/listprofiles` - Display all user profiles (Everyone)
+- `/createprofile` - Create a new user profile with rank and details (Admin only)
+- `/updateprofile` - Update an existing user profile (Admin only)
+- `/deleteprofile` - Delete a user profile (Admin only)
+
+**Configuration Commands:**
+- `/set` - Configure bot settings (roles, channels, logs) (Admin only)
+- `/unset` - Remove bot configurations (Admin only)
 
 ### 📊 Status Display
 - Server address
@@ -26,6 +41,20 @@ A feature-rich Discord bot for monitoring Minecraft server status with auto-upda
 - Current players / Max players
 - Peak players record
 - Individual server status (Survival & Lifesteal)
+
+### 👥 User Profile Management
+- **Create, Update, Delete** - Full CRUD operations for user profiles
+- **Rank System** - Support for Media, Media+, and Admin ranks
+- **Automatic Role Management** - Assigns/removes Discord roles based on rank
+- **Time-Limited Ranks** - Set rank duration in days (minimum 5 days) or permanent
+- **Expiration Notifications** - Automatic DM notifications at 2 days, 1 day, and expiration
+- **Channel Links** - Associate YouTube/social media channels with profiles
+- **DM Notifications** - Users receive DMs when profiles are created, updated, or deleted
+
+### 📋 Logging System
+- **Public Log** - Auto-updating member list embed organized by rank
+- **Media Announcements** - Public notifications for rank expirations with user mentions
+- **Admin Log** - Private admin view with expiration countdown tracking
 
 ## Prerequisites
 
@@ -103,14 +132,38 @@ npm start
 
 Once the bot is online in your server:
 
+**Basic Commands:**
 - **`/ping`** - Test bot responsiveness and check API latency
+- **`/help`** - View all available commands with detailed usage
+
+**Server Status Commands:**
 - **`/mcstatus`** - Manually check server status (Admin only)
-- **`/setchannel`** - Configure current channel for status updates (Admin only)
-  - Can be used in multiple channels across different servers
-  - Each channel maintains its own status message
 - **`/update`** - Force immediate status update in all configured channels (Admin only)
-  - Bypasses the 5-minute cooldown
-  - Updates all channels at once
+
+**Profile Management Commands:**
+- **`/createprofile`** - Create a user profile with rank, in-game name, channel link (Admin only)
+  - Set rank duration in days (minimum 5) or use 0 for permanent
+  - Valid ranks: media, media+, admin
+  - Example: `/createprofile @User MinecraftName media https://youtube.com/channel 30`
+- **`/updateprofile`** - Update profile information (Admin only)
+  - Options: `adddays` (add to existing end date), `extenddays` (extend from today), `setdays` (new period from today)
+  - Update rank, in-game name, or channel link
+  - Example: `/updateprofile @User adddays:7`
+- **`/deleteprofile`** - Remove a user profile (Admin only)
+- **`/viewprofile [user]`** - View profile details (Everyone)
+- **`/listprofiles`** - Display all profiles (Everyone)
+
+**Configuration Commands:**
+- **`/set`** - Configure bot settings (Admin only)
+  - `type:publiclog` - Set public member list log channel
+  - `type:mediaannouncements` - Set media announcements channel
+  - `type:adminlog` - Set admin log channel
+  - `type:statuschannel` - Set current channel for status updates
+  - `type:mediarole` - Assign Discord role for media rank
+  - `type:mediaplusrole` - Assign Discord role for media+ rank
+  - Example: `/set type:mediarole role:@Media`
+- **`/unset`** - Remove bot configurations (Admin only)
+  - Remove role assignments: `/unset type:mediarole`
 
 ### Auto-Updates
 
@@ -124,12 +177,15 @@ The bot tracks the highest number of players ever online and displays it in the 
 
 ```
 Dc Bot/
-├── index.js           # Main bot file
+├── index.js           # Main bot file with command handlers and automation
+├── profiles.js        # Profile management module (CRUD operations)
+├── help.js            # Help system and command documentation
 ├── mcStatus.js        # Server status logic and embed creation
 ├── package.json       # Dependencies and scripts
 ├── .env              # Environment variables (not tracked in git)
 ├── .env.example      # Example environment file
-├── data.json         # Persistent data (peak players, channel configs)
+├── data.json         # Persistent data (profiles, roles, channels, logs)
+├── data.example.json # Example data structure
 ├── images/           # Embed images
 │   ├── logo.png
 │   └── banner.png
