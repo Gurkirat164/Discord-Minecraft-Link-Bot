@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Data file path
-const dataFilePath = path.join(__dirname, 'data.json');
+const dataFilePath = path.join(__dirname, '../data.json');
 
 // Valid ranks
 const VALID_RANKS = ['media', 'media+', 'admin'];

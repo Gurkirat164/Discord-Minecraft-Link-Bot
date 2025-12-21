@@ -117,8 +117,8 @@ function createServerEmbed(data, serverName, peakPlayers = 0, serverCounts = {})
     }
 
     // Create attachments for logo and banner
-    const logoPath = path.join(__dirname, 'images', 'logo.png');
-    const bannerPath = path.join(__dirname, 'images', 'banner.png');
+    const logoPath = path.join(__dirname, '../images', 'logo.png');
+    const bannerPath = path.join(__dirname, '../images', 'banner.png');
     
     const files = [
         new AttachmentBuilder(logoPath, { name: 'logo.png' }),

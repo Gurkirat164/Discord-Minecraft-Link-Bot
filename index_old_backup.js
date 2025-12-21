@@ -1,8 +1,8 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
-const { createServerEmbeds } = require('./mcStatus');
-const { createProfile, updateProfile, deleteProfile, getProfile, getAllProfiles, formatProfileEmbed, saveProfiles } = require('./profiles');
-const { getHelpEmbed } = require('./help');
+const { createServerEmbeds } = require('./src/mcStatus');
+const { createProfile, updateProfile, deleteProfile, getProfile, getAllProfiles, formatProfileEmbed, saveProfiles } = require('./src/profiles');
+const { getHelpEmbed } = require('./src/help');
 const fs = require('fs');
 const path = require('path');
 
@@ -171,7 +171,7 @@ let channels = [];
 let peakPlayers = 0;
 let rankRoles = {}; // Store role IDs for each rank
 let logChannels = {
-    publicLog: { channelId: null, messageId: null },
+    publicLog: { channelId: null, mediaMessageId: null, mediaPlusMessageId: null },
     mediaAnnouncements: { channelId: null },
     adminLog: { channelId: null, mediaMessageId: null, mediaPlusMessageId: null }
 };
@@ -186,7 +186,7 @@ function loadData() {
             peakPlayers = data.peakPlayers || 0;
             rankRoles = data.rankRoles || {};
             logChannels = data.logChannels || {
-                publicLog: { channelId: null, messageId: null },
+                publicLog: { channelId: null, mediaMessageId: null, mediaPlusMessageId: null },
                 mediaAnnouncements: { channelId: null },
                 adminLog: { channelId: null, mediaMessageId: null, mediaPlusMessageId: null }
             };
@@ -225,7 +225,7 @@ function saveData() {
 }
 
 // When the client is ready, run this code once
-client.once('ready', async () => {
+client.once('clientReady', async () => {
     console.log(`✅ Logged in as ${client.user.tag}`);
     
     // Load saved data
@@ -407,7 +407,8 @@ client.on('interactionCreate', async interaction => {
             }
             
             logChannels.publicLog.channelId = channel.id;
-            logChannels.publicLog.messageId = null;
+            logChannels.publicLog.mediaMessageId = null;
+            logChannels.publicLog.mediaPlusMessageId = null;
             saveData();
             
             await updatePublicLog();
@@ -819,50 +820,69 @@ async function updatePublicLog() {
         if (!channel || !channel.isTextBased()) return;
         
         const profiles = getAllProfiles();
-        const mediaProfiles = profiles.filter(p => p.rank === 'media' && (!p.rankEndDate || new Date(p.rankEndDate) > new Date()));
-        const mediaPlusProfiles = profiles.filter(p => p.rank === 'media+' && (!p.rankEndDate || new Date(p.rankEndDate) > new Date()));
+        const now = new Date();
+        const mediaProfiles = profiles.filter(p => p.rank === 'media' && (!p.rankEndDate || new Date(p.rankEndDate) > now));
+        const mediaPlusProfiles = profiles.filter(p => p.rank === 'media+' && (!p.rankEndDate || new Date(p.rankEndDate) > now));
         
+        // Media embed
         const mediaList = mediaProfiles.length > 0 
             ? mediaProfiles.map(p => `• **${p.username}** - \`${p.inGameName}\``).join('\n')
             : '*No active members*';
         
-        const mediaPlusList = mediaPlusProfiles.length > 0
-            ? mediaPlusProfiles.map(p => `• **${p.username}** - \`${p.inGameName}\``).join('\n')
-            : '*No active members*';
-        
-        const embed = {
-            color: 0x5865F2,
-            title: '📋 Active Media Team Members',
-            fields: [
-                {
-                    name: '📹 Media Members',
-                    value: mediaList,
-                    inline: false
-                },
-                {
-                    name: '🎬 Media+ Members',
-                    value: mediaPlusList,
-                    inline: false
-                }
-            ],
+        const mediaEmbed = {
+            color: 0x0099ff,
+            title: '📹 Media Members',
+            description: mediaList,
             footer: {
-                text: `Total Active: ${mediaProfiles.length + mediaPlusProfiles.length} members`
+                text: `Active Media: ${mediaProfiles.length}`
             },
             timestamp: new Date()
         };
         
-        if (logChannels.publicLog.messageId) {
+        // Media+ embed
+        const mediaPlusList = mediaPlusProfiles.length > 0
+            ? mediaPlusProfiles.map(p => `• **${p.username}** - \`${p.inGameName}\``).join('\n')
+            : '*No active members*';
+        
+        const mediaPlusEmbed = {
+            color: 0x00ff00,
+            title: '🎬 Media+ Members',
+            description: mediaPlusList,
+            footer: {
+                text: `Active Media+: ${mediaPlusProfiles.length}`
+            },
+            timestamp: new Date()
+        };
+        
+        // Update or send media embed
+        if (logChannels.publicLog.mediaMessageId) {
             try {
-                const message = await channel.messages.fetch(logChannels.publicLog.messageId);
-                await message.edit({ embeds: [embed] });
+                const message = await channel.messages.fetch(logChannels.publicLog.mediaMessageId);
+                await message.edit({ embeds: [mediaEmbed] });
             } catch {
-                const sentMessage = await channel.send({ embeds: [embed] });
-                logChannels.publicLog.messageId = sentMessage.id;
+                const sentMessage = await channel.send({ embeds: [mediaEmbed] });
+                logChannels.publicLog.mediaMessageId = sentMessage.id;
                 saveData();
             }
         } else {
-            const sentMessage = await channel.send({ embeds: [embed] });
-            logChannels.publicLog.messageId = sentMessage.id;
+            const sentMessage = await channel.send({ embeds: [mediaEmbed] });
+            logChannels.publicLog.mediaMessageId = sentMessage.id;
+            saveData();
+        }
+        
+        // Update or send media+ embed
+        if (logChannels.publicLog.mediaPlusMessageId) {
+            try {
+                const message = await channel.messages.fetch(logChannels.publicLog.mediaPlusMessageId);
+                await message.edit({ embeds: [mediaPlusEmbed] });
+            } catch {
+                const sentMessage = await channel.send({ embeds: [mediaPlusEmbed] });
+                logChannels.publicLog.mediaPlusMessageId = sentMessage.id;
+                saveData();
+            }
+        } else {
+            const sentMessage = await channel.send({ embeds: [mediaPlusEmbed] });
+            logChannels.publicLog.mediaPlusMessageId = sentMessage.id;
             saveData();
         }
     } catch (error) {

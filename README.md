@@ -177,10 +177,11 @@ The bot tracks the highest number of players ever online and displays it in the 
 
 ```
 Dc Bot/
-├── index.js           # Main bot file with command handlers and automation
-├── profiles.js        # Profile management module (CRUD operations)
-├── help.js            # Help system and command documentation
-├── mcStatus.js        # Server status logic and embed creation
+├── src/
+│   ├── index.js       # Main bot file with command handlers and automation
+│   ├── profiles.js    # Profile management module (CRUD operations)
+│   ├── help.js        # Help system and command documentation
+│   ├── mcStatus.js    # Server status logic and embed creation
 ├── package.json       # Dependencies and scripts
 ├── .env              # Environment variables (not tracked in git)
 ├── .env.example      # Example environment file
@@ -200,7 +201,7 @@ Edit the `SURVIVAL_IP` and `LIFESTEAL_IP` values in `.env`, or add more servers 
 
 ### Changing Update Interval
 
-In `index.js`, modify this line (default is 5 minutes):
+In `src/index.js`, modify this line (default is 5 minutes):
 ```javascript
 setInterval(updateStatus, 5 * 60 * 1000); // Change 5 to desired minutes
 ```
