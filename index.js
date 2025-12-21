@@ -1,17 +1,15 @@
 require('dotenv').config();
 const { Client, GatewayIntentBits, REST, Routes, SlashCommandBuilder, PermissionFlagsBits } = require('discord.js');
 const { createServerEmbeds } = require('./mcStatus');
-const { createProfile, updateProfile, deleteProfile, getProfile, getAllProfiles, formatProfileEmbed, saveProfiles, VALID_RANKS } = require('./profiles');
-const { getHelpEmbed, getCommandDetails } = require('./help');
+const { createProfile, updateProfile, deleteProfile, getProfile, getAllProfiles, formatProfileEmbed, saveProfiles } = require('./profiles');
+const { getHelpEmbed } = require('./help');
 const fs = require('fs');
 const path = require('path');
 
 // Create a new client instance
 const client = new Client({ 
     intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,    // To receive message events
-        GatewayIntentBits.MessageContent    // To read message content (privileged intent)
+        GatewayIntentBits.Guilds
     ] 
 });
 
@@ -34,11 +32,6 @@ const commands = [
     new SlashCommandBuilder()
         .setName('update')
         .setDescription('Force update server status immediately')
-        .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-        .toJSON(),
-    new SlashCommandBuilder()
-        .setName('setchannel')
-        .setDescription('Set the channel for server status updates')
         .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
         .toJSON(),
     new SlashCommandBuilder()
@@ -314,18 +307,37 @@ client.on('interactionCreate', async interaction => {
 
     if (interaction.commandName === 'update') {
         await interaction.deferReply({ ephemeral: true });
-        
-        if (channels.length === 0) {
-            await interaction.editReply('❌ No status channels configured. Use `/setchannel` first.');
-            return;
-        }
 
         try {
-            await forceUpdateAll();
-            await interaction.editReply('✅ Server status updated successfully in all channels!');
+            let updates = [];
+            
+            // Update server status embeds
+            if (channels.length > 0) {
+                await forceUpdateAll();
+                updates.push('✅ Server status updated');
+            }
+            
+            // Update public log
+            if (logChannels.publicLog.channelId) {
+                await updatePublicLog();
+                updates.push('✅ Public log updated');
+            }
+            
+            // Update admin log
+            if (logChannels.adminLog.channelId) {
+                await updateAdminLog();
+                updates.push('✅ Admin log updated');
+            }
+            
+            if (updates.length === 0) {
+                await interaction.editReply('❌ No channels configured. Use `/set` to configure channels first.');
+                return;
+            }
+            
+            await interaction.editReply(`**All embeds updated successfully!**\n\n${updates.join('\n')}`);
         } catch (error) {
             console.error('❌ Error forcing update:', error);
-            await interaction.editReply('❌ Failed to update server status.');
+            await interaction.editReply('❌ Failed to update embeds: ' + error.message);
         }
     }
 
