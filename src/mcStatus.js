@@ -80,7 +80,7 @@ function createServerEmbed(data, serverName, peakPlayers = 0, serverCounts = {})
         // Version (hardcoded)
         embed.addFields({
             name: '🎮 Version',
-            value: `**1.7.2 - 1.21.10**`,
+            value: `**1.7.2 - 26.1.2**`,
             inline: false
         });
 
@@ -103,7 +103,9 @@ function createServerEmbed(data, serverName, peakPlayers = 0, serverCounts = {})
         // Servers section with status
         const survivalStatus = serverCounts.survival.online ? '🟢' : '🔴';
         const lifestealStatus = serverCounts.lifesteal.online ? '🟢' : '🔴';
-        const serversText = `${survivalStatus} **Survival:** ${serverCounts.survival.players} players\n${lifestealStatus} **Lifesteal:** ${serverCounts.lifesteal.players} players`;
+        const pvpStatus = serverCounts.pvp.online ? '🟢' : '🔴';
+        const survival2Status = serverCounts.survival2.online ? '🟢' : '🔴';
+        const serversText = `${survivalStatus} **Survival:** ${serverCounts.survival.players} players\n${lifestealStatus} **Lifesteal:** ${serverCounts.lifesteal.players} players\n${pvpStatus} **PVP:** ${serverCounts.pvp.players} players\n${survival2Status} **Survival 2:** ${serverCounts.survival2.players} players`;
         embed.addFields({
             name: '🎮 Servers',
             value: serversText,
@@ -134,9 +136,11 @@ function createServerEmbed(data, serverName, peakPlayers = 0, serverCounts = {})
  * @param {number} peakPlayers - Peak number of players
  * @param {string} survivalIp - Survival server IP
  * @param {string} lifestealIp - Lifesteal server IP
+ * @param {string} pvpIp - PVP server IP
+ * @param {string} survival2Ip - Survival 2 server IP
  * @returns {Promise<object>} Object with embeds and current online count
  */
-async function createServerEmbeds(addresses, peakPlayers = 0, survivalIp = '', lifestealIp = '') {
+async function createServerEmbeds(addresses, peakPlayers = 0, survivalIp = '', lifestealIp = '', pvpIp = '', survival2Ip = '') {
     const embeds = [];
     const files = [];
     let currentOnline = 0;
@@ -144,7 +148,9 @@ async function createServerEmbeds(addresses, peakPlayers = 0, survivalIp = '', l
     // Fetch individual server info (status and player counts)
     const serverCounts = {
         survival: survivalIp ? await fetchServerInfo(survivalIp) : { online: false, players: 0 },
-        lifesteal: lifestealIp ? await fetchServerInfo(lifestealIp) : { online: false, players: 0 }
+        lifesteal: lifestealIp ? await fetchServerInfo(lifestealIp) : { online: false, players: 0 },
+        pvp: pvpIp ? await fetchServerInfo(pvpIp) : { online: false, players: 0 },
+        survival2: survival2Ip ? await fetchServerInfo(survival2Ip) : { online: false, players: 0 }
     };
     
     for (const address of addresses) {

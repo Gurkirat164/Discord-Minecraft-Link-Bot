@@ -13,7 +13,9 @@ async function forceUpdateAll(client) {
 
     const survivalIp = process.env.SURVIVAL_IP || '';
     const lifestealIp = process.env.LIFESTEAL_IP || '';
-    const result = await createServerEmbeds(servers, peakPlayers, survivalIp, lifestealIp);
+    const pvpIp = process.env.PVP_IP || '';
+    const survival2Ip = process.env.SURVIVAL_2_IP || '';
+    const result = await createServerEmbeds(servers, peakPlayers, survivalIp, lifestealIp, pvpIp, survival2Ip);
     
     if (!result.embeds || result.embeds.length === 0) {
         throw new Error('No embeds generated');
